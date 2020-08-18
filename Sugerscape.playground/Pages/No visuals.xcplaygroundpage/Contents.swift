@@ -7,13 +7,15 @@ import Foundation
 /// I've got the sugar growing, now let's add one agent who eats it
 
 /// They mention in the book that there's a Population object which handles mass agent analysis
+/// Looking through Shiffman's section on CA https://natureofcode.com/book/chapter-7-cellular-automata/
+/// there's nothing fancy about checking the surrounding neighbors. I can optimize later.
 
 struct Environment {
     var cells: [Cell] = []
     var agents: [Agent] = []
     // maximum number of cells in each dimension
-    let maxWidth: Int = 4
-    let maxHeight: Int = 4
+    let maxWidth: Int = 5
+    let maxHeight: Int = 5
 
     mutating func setup() {
         // pretend cell width and height is just 1
@@ -22,6 +24,7 @@ struct Environment {
                 cells.append(Cell(x: x, y: y))
             }
         }
+        print("Setup cells", cells)
 
         // just one agent for now, placed randomly
         let startingX = Int.random(in: 0..<maxWidth)
@@ -39,6 +42,17 @@ struct Environment {
     private func moveAgents() {
         for agent in agents {
             agent.move(maxWidth: maxWidth, maxHeight: maxHeight)
+            // find the cell that the agent is currently on
+            let currentCell = cells.first { cell in
+                cell.x == agent.x && cell.y == agent.y
+            }
+            guard let cell = currentCell else {
+                break
+            }
+            print("Getting ready to eat \(cell.sugar) at: \(cell.x):\(cell.y)")
+            agent.eat(availableSugar: cell.sugar)
+            // harvest
+            cell.sugar = 0
         }
     }
 
@@ -68,8 +82,8 @@ class Cell: CustomDebugStringConvertible {
     }
 
     func updateSugar() {
-        guard sugar < 4 else {
-            sugar = 0
+        // maximum growth
+        guard sugar != 4 else {
             return
         }
 
@@ -78,7 +92,7 @@ class Cell: CustomDebugStringConvertible {
     }
 
     var debugDescription: String {
-        "\(x),\(y) sugar: \(sugar)"
+        "\(x):\(y) sugar: \(sugar)"
     }
 }
 
