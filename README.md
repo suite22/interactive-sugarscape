@@ -4,9 +4,9 @@ In an effort to better understand the research done by Joshua Epstein and Robert
 > In 1995, they decided to conduct an experiment to see if they could grow an economy from scratch. Like biologists trying to cultivate life in vitro in a petri dish, Epstein and Axtell wanted to see if they could spark economic life _in silico_, in the simulated world of a computer.
 
 ## What is Sugarscape?
-The landscape or environment for the experiment is a 50x50 grid of cells containing one commodity - sugar. Agents were given rules to see if anything resenbmling the real world emerged from the system. 
+The landscape or environment for the experiment is a 50x50 grid of cells containing one commodity - sugar. Agents were given rules to see if anything resembling the real world emerged from the system. 
 
-By adding simple rule based agent modeling Epstein and Axtell were able to observe 
+By adding simple rule based agent modeling Epstein and Axtell were able to observe interesting patterns of emergent behaviour. 
 
 I will be using their published book as the guide for recreating Sugarscape and hopefully creating interesting opportunities to interactively explore more questions along the way.
 
