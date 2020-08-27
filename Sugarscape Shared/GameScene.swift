@@ -12,6 +12,8 @@ class GameScene: SKScene {
 
     fileprivate var label : SKLabelNode?
     private var environment = Environment()
+    private let agentsNode: SKNode = SKNode()
+    private let sugarsNode: SKNode = SKNode()
     
     class func newGameScene() -> GameScene {
         // Load 'GameScene.sks' as an SKScene.
@@ -27,6 +29,9 @@ class GameScene: SKScene {
     }
     
     func setUpScene() {
+        environment.setup()
+        environment.update()
+
         // Get label node from scene and store it for use later
         self.label = self.childNode(withName: "//helloLabel") as? SKLabelNode
         if let label = self.label {
@@ -34,8 +39,17 @@ class GameScene: SKScene {
             label.run(SKAction.fadeIn(withDuration: 2.0))
         }
 
-        environment.setup()
-        environment.update()
+        // keep them seperate from the landscape nodes
+        agentsNode.name = "agents"
+        addChild(agentsNode)
+
+        for agent in environment.agents {
+            let rect = CGSize(width: 10, height: 10)
+            let node = SKShapeNode(rectOf: rect)
+            node.fillColor = .red
+            node.name = agent.uniqueID.description
+            agentsNode.addChild(node)
+        }
     }
 
     override func didMove(to view: SKView) {
@@ -45,6 +59,8 @@ class GameScene: SKScene {
     override func update(_ currentTime: TimeInterval) {
         // Called before each frame is rendered
         environment.update()
+
+
     }
 }
 
@@ -160,11 +176,13 @@ class Cell: CustomDebugStringConvertible {
 
 // blindly wander around and eat the sugar on a cell
 class Agent: CustomDebugStringConvertible {
+    let uniqueID: UUID
     var x: Int
     var y: Int
     var storedSugar = 0
 
     init(x: Int, y: Int) {
+        self.uniqueID = UUID()
         self.x = x
         self.y = y
     }
