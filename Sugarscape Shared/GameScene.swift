@@ -10,7 +10,6 @@ import SpriteKit
 
 class GameScene: SKScene {
 
-    fileprivate var label : SKLabelNode?
     private var environment = Environment()
     private let agentsNode: SKNode = SKNode()
     private let sugarsNode: SKNode = SKNode()
@@ -23,7 +22,7 @@ class GameScene: SKScene {
         }
         
         // Set the scale mode to scale to fit the window
-        scene.scaleMode = .aspectFill
+        scene.scaleMode = .aspectFit
         
         return scene
     }
@@ -31,13 +30,6 @@ class GameScene: SKScene {
     func setUpScene() {
         environment.setup()
         environment.update()
-
-        // Get label node from scene and store it for use later
-        self.label = self.childNode(withName: "//helloLabel") as? SKLabelNode
-        if let label = self.label {
-            label.alpha = 0.0
-            label.run(SKAction.fadeIn(withDuration: 2.0))
-        }
 
         // keep them seperate from the landscape nodes
         agentsNode.name = "agents"
@@ -49,6 +41,9 @@ class GameScene: SKScene {
             node.fillColor = .red
             node.name = agent.uniqueID.description
             agentsNode.addChild(node)
+            let agentStart = CGPoint(x: agent.x, y: agent.y)
+            let initialMove = SKAction.move(to: agentStart, duration: 0)
+            node.run(initialMove)
         }
     }
 
@@ -63,30 +58,6 @@ class GameScene: SKScene {
 
     }
 }
-
-#if os(iOS) || os(tvOS)
-// Touch-based event handling
-extension GameScene {
-
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        if let label = self.label {
-            label.run(SKAction.init(named: "Pulse")!, withKey: "fadeInOut")
-        }
-    }
-}
-#endif
-
-#if os(OSX)
-// Mouse-based event handling
-extension GameScene {
-
-    override func mouseDown(with event: NSEvent) {
-        if let label = self.label {
-            label.run(SKAction.init(named: "Pulse")!, withKey: "fadeInOut")
-        }
-    }
-}
-#endif
 
 class Environment {
     var cells: [Cell] = []
