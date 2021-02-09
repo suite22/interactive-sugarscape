@@ -13,6 +13,8 @@ class GameScene: SKScene {
     private var environment = Environment()
     private let agentsNode: SKNode = SKNode()
     private let sugarsNode: SKNode = SKNode()
+    private let gridNode: SKNode = SKNode()
+    static private let environmentSize: (x: Int, y: Int) = (100, 100)
     
     class func newGameScene() -> GameScene {
         // Load 'GameScene.sks' as an SKScene.
@@ -24,15 +26,15 @@ class GameScene: SKScene {
         // Set the scale mode to scale to fit the window
         scene.scaleMode = .aspectFit
         scene.backgroundColor = .white
-        let sceneSize = CGSize(width: 500, height: 500)
+        let sceneSize = CGSize(width: environmentSize.x, height: environmentSize.y)
         scene.size = sceneSize
         
         return scene
     }
     
     func setUpScene() {
-        environment.setup()
-        environment.update()
+        environment.setup(size: GameScene.environmentSize)
+//        environment.update()
 
         // keep them seperate from the landscape nodes
         agentsNode.name = "agents"
@@ -48,6 +50,30 @@ class GameScene: SKScene {
             let initialMove = SKAction.move(to: agentStart, duration: 0)
             node.run(initialMove)
         }
+
+        // grid lines
+        gridNode.name = "gridLines"
+        addChild(gridNode)
+
+        for gridLine in environment.gridLines {
+            var rect: CGSize
+            var positionLine: CGPoint
+
+            switch gridLine.direction {
+            case .horizontal:
+                rect = CGSize(width: GameScene.environmentSize.x, height: 1)
+                positionLine = CGPoint(x: 0, y: gridLine.startingPoint)
+            case .vertical:
+                rect = CGSize(width: 1, height: GameScene.environmentSize.y)
+                positionLine = CGPoint(x: gridLine.startingPoint, y: 0)
+            }
+
+            let node = SKShapeNode(rectOf: rect)
+            node.fillColor = .lightGray
+            gridNode.addChild(node)
+            let initialPosition = SKAction.move(to: positionLine, duration: 0)
+            node.run(initialPosition)
+        }
     }
 
     override func didMove(to view: SKView) {
@@ -56,7 +82,7 @@ class GameScene: SKScene {
     
     override func update(_ currentTime: TimeInterval) {
         // Called before each frame is rendered
-        environment.update()
+//        environment.update()
 
 
     }
@@ -65,23 +91,53 @@ class GameScene: SKScene {
 class Environment {
     var cells: [Cell] = []
     var agents: [Agent] = []
+    var gridLines: [GridLine] = []
     // maximum number of cells in each dimension
-    let maxWidth: Int = 5
-    let maxHeight: Int = 5
+    let maxAgents: Int = 1
+    let scalingFactor: Int = 10
+    var size: (x: Int, y: Int) = (500, 500)
 
-    func setup() {
-        // pretend cell width and height is just 1
-        for x in 0..<maxWidth {
-            for y in 0..<maxHeight {
+    private let colorGradiants: Set<UIColor> = [.black, .darkGray, .darkGray, .lightGray]
+
+    func setup(size: (x: Int, y: Int)) {
+        self.size = size
+
+        setupGridLines()
+//        setupCells()
+
+        // just one agent for now, placed randomly
+        let startingX = Int.random(in: 0 ..< size.x)
+        let startingY = Int.random(in: 0 ..< size.y)
+        agents.append(Agent(x: startingX, y: startingY))
+    }
+
+    func setupGridLines() {
+        // draw grid lines
+        // the center of the SKView is 0,0
+        var x: Int = -(size.x / 2) + scalingFactor
+        var y: Int = -(size.y / 2) + scalingFactor
+
+        while x < (size.x / 2) {
+            gridLines.append(GridLine(startingPoint: x, direction: .horizontal))
+            x += scalingFactor
+        }
+
+        while y < (size.y / 2) {
+            gridLines.append(GridLine(startingPoint: y, direction: .vertical))
+            y += scalingFactor
+        }
+    }
+
+    func setupCells() {
+        // build up cells
+        for var x in 0 ..< size.x {
+            for var y in 0 ..< size.y {
                 cells.append(Cell(x: x, y: y))
+                x += scalingFactor
+                y += scalingFactor
             }
         }
         print("Setup cells", cells)
-
-        // just one agent for now, placed randomly
-        let startingX = Int.random(in: 0..<maxWidth)
-        let startingY = Int.random(in: 0..<maxHeight)
-        agents.append(Agent(x: startingX, y: startingY))
     }
 
     // basically the run loop call
@@ -93,7 +149,7 @@ class Environment {
     // agents move and then eat what's on the given cell
     private func moveAgents() {
         for agent in agents {
-            agent.move(maxWidth: maxWidth, maxHeight: maxHeight)
+            agent.move(maxWidth: size.x, maxHeight: size.y)
             // find the cell that the agent is currently on
             let currentCell = cells.first { cell in
                 cell.x == agent.x && cell.y == agent.y
@@ -114,6 +170,21 @@ class Environment {
         }
         print(cells)
         print(agents)
+    }
+}
+
+class GridLine {
+    let startingPoint: Int
+    let direction: Direction
+
+    enum Direction {
+        case horizontal
+        case vertical
+    }
+
+    init(startingPoint: Int, direction: Direction) {
+        self.startingPoint = startingPoint
+        self.direction = direction
     }
 }
 
@@ -140,6 +211,7 @@ class Cell: CustomDebugStringConvertible {
         }
 
         sugar += 1
+
         //print("Sugar level \(sugar): ", x, y)
     }
 

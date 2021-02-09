@@ -22,6 +22,7 @@ class GameViewController: UIViewController {
         skView.presentScene(scene)
         
         skView.ignoresSiblingOrder = true
+        skView.preferredFramesPerSecond = 5 // debugging
         skView.showsFPS = true
         skView.showsNodeCount = true
     }
